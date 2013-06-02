@@ -1350,7 +1350,7 @@
                     if (child.localName == "menuitem")
                     {
                         var label = child.getAttribute("tooltiptext").toLowerCase();
-                        child._searchMatch = label.indexOf(substring) != -1;
+                        child._searchMatch = this.fuzzySearch(label, substring);
                         if (child._searchMatch)
                         {
                             this.firstMatch = child;
@@ -1433,6 +1433,23 @@
                     FBL.$STR("script.Type any key to filter list");
 
                 this.setAttribute("value", filterString);
+            ]]>
+            </body>
+        </method>
+
+        <method name="fuzzySearch">
+            <parameter name="label"/>
+            <parameter name="token"/>
+            <body><![CDATA[
+                // create a fuzzy search regular expression based on the token,
+                // e.g. "asd" => [^a]*a[^s]*s[^d]*d
+                var letters = token.split(''), tokens = [];
+                for (var i = 0; i < letters.length; i++) {
+                    var letter = letters[i];
+                    tokens.push('[^' + letter + ']*' + letter);
+                }
+                var patt = new RegExp(tokens.join(''));
+                return patt.test(label);
             ]]>
             </body>
         </method>
