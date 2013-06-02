@@ -1350,7 +1350,7 @@
                     if (child.localName == "menuitem")
                     {
                         var label = child.getAttribute("tooltiptext").toLowerCase();
-                        child._searchMatch = this.fuzzySearch(label, substring);
+                        child._searchMatch = this.fuzzySearchByPath(label, substring);
                         if (child._searchMatch)
                         {
                             this.firstMatch = child;
@@ -1437,19 +1437,51 @@
             </body>
         </method>
 
+        <method name="fuzzySearchByPath">
+            <parameter name="label"/>
+            <parameter name="token"/>
+            <body><![CDATA[
+                // split the search token and label by path segments
+                var paths = label.split('/'), tokens = token.split('/');
+                // remove query string variables from the filename
+                paths[paths.length - 1] = paths[paths.length - 1].split('?')[0];
+                if (tokens.length === 1) {  // only match by filename
+                    return this.fuzzySearch(paths[paths.length - 1], token);
+                }
+                else {  // search for consecutive file path segment matches
+                    var pathIdx = 0
+                    for (var i = 0; i < tokens.length; i++) {
+                        var match = false;
+                        for (pathIdx; pathIdx < paths.length; ++pathIdx) {
+                            if (this.fuzzySearch(paths[pathIdx], tokens[i])) {
+                                match = true; ++pathIdx; break;
+                            }
+                        }
+                        if (!match) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            ]]>
+            </body>
+        </method>
+
         <method name="fuzzySearch">
             <parameter name="label"/>
             <parameter name="token"/>
             <body><![CDATA[
-                // create a fuzzy search regular expression based on the token,
-                // e.g. "asd" => [^a]*a[^s]*s[^d]*d
-                var letters = token.split(''), tokens = [];
-                for (var i = 0; i < letters.length; i++) {
-                    var letter = letters[i];
-                    tokens.push('[^' + letter + ']*' + letter);
+                if (!!label && !!token) {
+                    // create a fuzzy search regular expression based on the token,
+                    // e.g. "asd" => [^a]*a[^s]*s[^d]*d
+                    var letters = token.split(''), tokens = [];
+                    for (var i = 0; i < letters.length; i++) {
+                        var letter = letters[i];
+                        tokens.push('[^' + letter + ']*' + letter);
+                    }
+                    var patt = new RegExp(tokens.join(''));
+                    return patt.test(label);
                 }
-                var patt = new RegExp(tokens.join(''));
-                return patt.test(label);
             ]]>
             </body>
         </method>
