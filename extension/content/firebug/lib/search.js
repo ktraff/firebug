@@ -344,6 +344,83 @@ Search.ReversibleRegExp = function(regex, flags)
     };
 };
 
+/**
+ * @class Searches for text in a given string, using approximate string matching 
+ *
+ * @constructor
+ * @param {String} text the text string to search
+ * @param {String} token the string used for matching the search text
+ */
+Search.FuzzySearch = function(text, token)
+{
+    this.text = text;
+    this.token = token;
+    var specialChars = [".", "\\", "?", "[", "^", "]", "$", "(", ")",
+                        "{", "}", "=", "!", "<", ">", "|", ":", "-"];
+
+    function escape(character)
+    {
+        for (var i = 0; i < specialChars.length; i++)
+        {
+            if (specialChars[i] === character)
+            {
+                return "\\" + character;
+            }
+        }
+        return character;
+    }
+
+    this.find = function(text, token)
+    {
+        // create a fuzzy search regular expression based on the token,
+        // e.g. "asd" => "[^a]*a[^s]*s[^d]*d".
+        var letters = token.split("");
+        var tokens = [];
+        for (var i = 0; i < letters.length; i++)
+        {
+            var letter = escape(letters[i]);
+            tokens.push("[^" + letter + "]*" + letter);
+        }
+        var patt = new RegExp(tokens.join(""));
+        return patt.test(text);
+    };
+
+    this.findByPath = function()
+    {
+        // split the search token and text by path segments
+        var paths = this.text.split("/");
+        var tokens = this.token.split("/");
+        // remove query string variables from the filename
+        paths[paths.length - 1] = paths[paths.length - 1].split("?")[0];
+        if (tokens.length === 1)
+        {
+            // only match by filename
+            return this.find(paths[paths.length - 1], this.token);
+        }
+        else
+        {
+            // search for consecutive file path segment matches
+            var pathIdx = 0;
+            for (var i = 0; i < tokens.length; i++)
+            {
+                var match = false;
+                for (pathIdx; pathIdx < paths.length; ++pathIdx)
+                {
+                    if (this.find(paths[pathIdx], tokens[i]))
+                    {
+                        match = true;
+                        ++pathIdx;
+                        break;
+                    }
+                }
+                if (!match)
+                    return false;
+            }
+            return true;
+        }
+    };
+};
+
 return Search;
 
 // ********************************************************************************************* //
