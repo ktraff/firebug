@@ -355,17 +355,12 @@ Search.FuzzySearch = function(text, token)
 {
     this.text = text;
     this.token = token;
-    var specialChars = [".", "\\", "?", "[", "^", "]", "$", "(", ")",
-                        "{", "}", "=", "!", "<", ">", "|", ":", "-"];
+    var specialChars = /[.\\\?\[\]\^\$\(\)\{\}\=\!<\>\|\:\-]/;
 
     function escape(character)
     {
-        for (var i = 0; i < specialChars.length; i++)
-        {
-            if (specialChars[i] === character)
-            {
-                return "\\" + character;
-            }
+        if (specialChars.test(character)) {
+            return "\\" + character;
         }
         return character;
     }
@@ -382,6 +377,7 @@ Search.FuzzySearch = function(text, token)
             tokens.push("[^" + letter + "]*" + letter);
         }
         var patt = new RegExp(tokens.join(""));
+        FBTrace.sysout(patt);
         return patt.test(text);
     };
 
