@@ -359,7 +359,8 @@ Search.FuzzySearch = function(text, token)
 
     function escape(character)
     {
-        if (specialChars.test(character)) {
+        if (specialChars.test(character))
+        {
             return "\\" + character;
         }
         return character;
@@ -367,7 +368,7 @@ Search.FuzzySearch = function(text, token)
 
     this.find = function(text, token)
     {
-        // create a fuzzy search regular expression based on the token,
+        // Create a fuzzy search regular expression based on the token,
         // e.g. "asd" => "[^a]*a[^s]*s[^d]*d".
         var letters = token.split("");
         var tokens = [];
@@ -383,19 +384,19 @@ Search.FuzzySearch = function(text, token)
 
     this.findByPath = function()
     {
-        // split the search token and text by path segments
+        // Split the search token and text by path segments.
         var paths = this.text.split("/");
         var tokens = this.token.split("/");
-        // remove query string variables from the filename
+        // Remove query string variables from the filename.
         paths[paths.length - 1] = paths[paths.length - 1].split("?")[0];
         if (tokens.length === 1)
         {
-            // only match by filename
+            // Only match by filename.
             return this.find(paths[paths.length - 1], this.token);
         }
         else
         {
-            // search for consecutive file path segment matches
+            // Search for consecutive file path segment matches.
             var pathIdx = 0;
             for (var i = 0; i < tokens.length; i++)
             {
