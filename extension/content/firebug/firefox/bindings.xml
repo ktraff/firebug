@@ -1351,8 +1351,7 @@
                     if (child.localName == "menuitem")
                     {
                         var label = child.getAttribute("tooltiptext").toLowerCase();
-                        var FuzzySearch = new SearchLib.FuzzySearch(label, substring);
-                        child._searchMatch = FuzzySearch.findByPath();
+                        child._searchMatch = SearchLib.FuzzySearch.findByPath(label, substring);
                         if (child._searchMatch)
                         {
                             this.firstMatch = child;

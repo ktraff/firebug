@@ -42,9 +42,7 @@ Search.TextSearch = function(rootNode, rowFinder)
      */
     this.find = function(text, reverse, caseSensitive)
     {
-        this.text = text;
-
-        finder.findBackwards = !!reverse;
+        text = texttokenfindBackwards = !!reverse;
         finder.caseSensitive = !!caseSensitive;
 
         var range = this.range = finder.Find(
@@ -344,78 +342,63 @@ Search.ReversibleRegExp = function(regex, flags)
     };
 };
 
+Search.FuzzySearch = {};
+
 /**
- * @class Searches for text in a given string, using approximate string matching 
- *
- * @constructor
- * @param {String} text the text string to search
- * @param {String} token the string used for matching the search text
+ * Searches for text in a given string, using approximate string matching. 
+ * @param {String} text the text string to search.
+ * @param {String} token the string used for matching the search text.
  */
-Search.FuzzySearch = function(text, token)
+Search.FuzzySearch.find = function(text, token)
 {
-    this.text = text;
-    this.token = token;
-    var specialChars = /[.\\\?\[\]\^\$\(\)\{\}\=\!<\>\|\:\-]/;
+    var letters = token.split("");
+    var matchIndex = 0;
 
-    function escape(character)
+    for (var i = 0; i < letters.length && matchIndex !== -1; i++)
+        matchIndex = text.indexOf(letters[i], matchIndex);
+
+    return letters.length !== 0 && matchIndex !== -1;
+};
+
+/**
+ * Searches for text in a given URL path (delimited by "/" slashes),
+ * using approximate string matching. 
+ * @param {String} text the text string to search.
+ * @param {String} token the string used for matching the search text.
+ */
+Search.FuzzySearch.findByPath = function(text, token)
+{
+    // Split the search token and text by path segments.
+    var paths = text.split("/");
+    var tokens = token.split("/");
+    // Remove query string variables from the filename.
+    paths[paths.length - 1] = paths[paths.length - 1].split("?")[0];
+    if (tokens.length === 1)
     {
-        if (specialChars.test(character))
-        {
-            return "\\" + character;
-        }
-        return character;
+        // Only match by filename.
+        return this.find(paths[paths.length - 1], token);
     }
-
-    this.find = function(text, token)
+    else
     {
-        // Create a fuzzy search regular expression based on the token,
-        // e.g. "asd" => "[^a]*a[^s]*s[^d]*d".
-        var letters = token.split("");
-        var tokens = [];
-        for (var i = 0; i < letters.length; i++)
+        // Search for consecutive file path segment matches.
+        var pathIdx = 0;
+        for (var i = 0; i < tokens.length; i++)
         {
-            var letter = escape(letters[i]);
-            tokens.push("[^" + letter + "]*" + letter);
-        }
-        var patt = new RegExp(tokens.join(""));
-        FBTrace.sysout(patt);
-        return patt.test(text);
-    };
-
-    this.findByPath = function()
-    {
-        // Split the search token and text by path segments.
-        var paths = this.text.split("/");
-        var tokens = this.token.split("/");
-        // Remove query string variables from the filename.
-        paths[paths.length - 1] = paths[paths.length - 1].split("?")[0];
-        if (tokens.length === 1)
-        {
-            // Only match by filename.
-            return this.find(paths[paths.length - 1], this.token);
-        }
-        else
-        {
-            // Search for consecutive file path segment matches.
-            var pathIdx = 0;
-            for (var i = 0; i < tokens.length; i++)
+            var match = false;
+            for (pathIdx; pathIdx < paths.length; pathIdx++)
             {
-                var match = false;
-                for (pathIdx; pathIdx < paths.length; ++pathIdx)
+                if (this.find(paths[pathIdx], tokens[i]))
                 {
-                    if (this.find(paths[pathIdx], tokens[i]))
-                    {
-                        match = true;
-                        ++pathIdx;
-                        break;
-                    }
+                    match = true;
+                    pathIdx++;
+                    break;
                 }
-                if (!match)
-                    return false;
             }
-            return true;
+            if (!match)
+                return false;
         }
-    };
+        return true;
+    }
 };
 
 return Search;
