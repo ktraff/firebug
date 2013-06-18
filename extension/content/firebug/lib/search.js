@@ -371,8 +371,10 @@ Search.FuzzySearch.findByPath = function(text, token)
     // Split the search token and text by path segments.
     var paths = text.split("/");
     var tokens = token.split("/");
-    // Remove query string variables from the filename.
-    paths[paths.length - 1] = paths[paths.length - 1].split("?")[0];
+    // If a question mark doesn't appear in the search text, 
+    // remove query string variables from the filename.
+    if (token.indexOf("?") === -1)
+        paths[paths.length - 1] = paths[paths.length - 1].split("?")[0];
     if (tokens.length === 1)
     {
         // Only match by filename.
