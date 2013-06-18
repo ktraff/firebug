@@ -380,7 +380,7 @@ Search.FuzzySearch.findByPath = function(text, token)
     }
     else
     {
-        // Search for consecutive file path segment matches.
+        // Search for subsequent file path segment matches.
         var pathIdx = 0;
         for (var i = 0; i < tokens.length; i++)
         {
