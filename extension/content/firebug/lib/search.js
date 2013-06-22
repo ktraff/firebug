@@ -368,6 +368,10 @@ Search.FuzzySearch.find = function(text, token)
  */
 Search.FuzzySearch.findByPath = function(text, token)
 {
+    // If there's an exact match, return true.
+    if (text.indexOf(token) !== -1)
+        return true;
+
     // Split the search token and text by path segments.
     var paths = text.split("/");
     var tokens = token.split("/");
